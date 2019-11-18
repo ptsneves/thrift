@@ -1642,7 +1642,7 @@ void t_netstd_generator::generate_service_client(ostream& out, t_service* tservi
         string function_name = correct_function_name_for_async((*functions_iterator)->get_name());
 
         // async
-        std::pair<string, string> seqid_option = std::make_pair("bool validate_seqid", "false");
+        std::pair<string, string> seqid_option = std::make_pair("bool validate_message", "false");
         vector<std::pair<string, string>> optional_args = vector<std::pair<string, string>>{seqid_option};
         out << indent() << "public async " << function_signature_async(*functions_iterator, "") << endl
             << indent() << "{" << endl;
@@ -1667,9 +1667,10 @@ void t_netstd_generator::generate_service_client(ostream& out, t_service* tservi
 
         string argsname = (*functions_iterator)->get_name() + "Args";
 
-        out << indent() << "var seqid = SeqId;" << endl
-            << indent() << "await OutputProtocol.WriteMessageBeginAsync(new TMessage(\"" << function_name
-            << "\", " << ((*functions_iterator)->is_oneway() ? "TMessageType.Oneway" : "TMessageType.Call") << ", seqid), cancellationToken);" << endl
+        out << indent() << "var original_message = new TMessage(\"" << function_name << "\", "
+                << ((*functions_iterator)->is_oneway() ? "TMessageType.Oneway" : "TMessageType.Call")
+                << ", SeqId);" << endl
+            << indent() << "await OutputProtocol.WriteMessageBeginAsync(original_message, cancellationToken);" << endl
             << indent() << endl
             << indent() << "var args = new " << argsname << "();" << endl;
 
@@ -1696,8 +1697,8 @@ void t_netstd_generator::generate_service_client(ostream& out, t_service* tservi
             prepare_member_name_mapping(xs, xs->get_members(), resultname);
 
             out << indent() << endl
-                << indent() << "var msg = await InputProtocol.ReadMessageBeginAsync(cancellationToken);" << endl
-                << indent() << "if (validate_seqid && msg.SeqID != seqid)" << endl
+                << indent() << "var msg = await InputProtocol.ReadMessageBeginAsync(original_message, cancellationToken);" << endl
+                << indent() << "if (validate_message && msg.SeqID != original_message.SeqID)" << endl
                 << indent() << "{" << endl;
             indent_up();
             out << indent() << "throw new TApplicationException(TApplicationException.ExceptionType.MissingResult, \"Received SeqID and sent one do not match.\");" << endl;
