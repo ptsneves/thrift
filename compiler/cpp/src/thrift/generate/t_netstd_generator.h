@@ -137,6 +137,7 @@ public:
   string argument_list(t_struct* tstruct, bool include_types = true);
   string type_to_enum(t_type* ttype);
   string prop_name(t_field* tfield, bool suppress_mapping = false);
+  string convert_to_pascal_case(const string& str);
   string get_enum_class_name(t_type* type);
 
 private:
@@ -148,6 +149,7 @@ private:
   bool hashcode_;
   bool serialize_;
   bool wcf_;
+  bool use_pascal_case_properties;
 
   string wcf_namespace_;
   map<string, int> netstd_keywords;
